@@ -1,0 +1,77 @@
+[
+  {
+    "id": "core",
+    "name": "habin-agents-gang",
+    "kind": "central",
+    "mission": "Equipo central compartido por todos los proyectos. Se instala en ~/.claude y se copia a cada repo con sync-to-projects.sh.",
+    "repo": "habin-agents-gang",
+    "stack": "Claude Code subagents (Markdown + YAML)",
+    "memberIds": ["jefe", "arquitecto", "implementador", "revisor", "mecanico", "redactor-es", "release-movil", "investigador-mercado", "validador-idea", "cumplimiento", "explore"],
+    "commonlyUses": [],
+    "responsibilities": [
+      "Enrutar cada tarea al modelo y esfuerzo adecuados para ahorrar tokens.",
+      "Mantener las reglas comunes (CLAUDE.md global) y la tabla de enrutado.",
+      "Escalar: implementador → arquitecto tras dos fallos; cambios de riesgo → revisor."
+    ],
+    "functionalRelations": [
+      "El jefe reparte; ningún subagente lanza otros (sin anidar más de un nivel).",
+      "Los agentes del proyecto tienen prioridad sobre los genéricos en su dominio."
+    ]
+  },
+  {
+    "id": "paddock",
+    "name": "Paddock",
+    "kind": "project",
+    "mission": "Recopilatorio de juegos de grupo en español, 100 % offline, para publicar en Google Play y App Store.",
+    "repo": "Paddock",
+    "stack": "Flutter + go_router",
+    "memberIds": ["contenido-fiesta", "juego-flutter"],
+    "commonlyUses": ["release-movil", "cumplimiento", "redactor-es", "revisor"],
+    "responsibilities": [
+      "Contenido de los juegos por niveles (Suave, Picante, Atrevido) cumpliendo las normas de las tiendas.",
+      "Mecánicas y juegos nuevos con el patrón GameModule.",
+      "Plan de publicación por fases (docs/PLAN_PUBLICACION.md) coordinado por el jefe."
+    ],
+    "functionalRelations": [
+      "juego-flutter deja marcadores TODO-CONTENIDO y pide los textos a contenido-fiesta.",
+      "release-movil y cumplimiento preparan y verifican la salida a tiendas."
+    ]
+  },
+  {
+    "id": "parrotrip",
+    "name": "Parrotrip",
+    "kind": "project",
+    "mission": "Metabuscador de vuelos orientado a viajes de trabajo; producción sobre Travelpayouts.",
+    "repo": "parrotrip",
+    "stack": "Next.js + Tailwind (frontend) · Node.js + TypeScript, Redis/Upstash, Railway (backend) · WSL",
+    "memberIds": ["guardian-ui", "proveedores"],
+    "commonlyUses": ["revisor", "cumplimiento"],
+    "responsibilities": [
+      "UI coherente con tokens del theme, claro/oscuro, 375 px y copy de metabuscador.",
+      "Adaptadores de proveedores, caché y búsqueda sin alterar datos de vuelo.",
+      "Cumplimiento de afiliación y términos de proveedores."
+    ],
+    "functionalRelations": [
+      "proveedores recomienda pasar por revisor cuando toca precios, redirect o analítica.",
+      "guardian-ui y proveedores no se pisan: UI frente a backend, un asunto por tarea."
+    ]
+  },
+  {
+    "id": "personal-dashboard",
+    "name": "personalDashboard",
+    "kind": "project",
+    "mission": "Dashboard personal de Javier: finanzas, piso, macro, Todoist y objetivos.",
+    "repo": "personalDashboard",
+    "stack": "Next.js en Vercel + Neon + Todoist",
+    "memberIds": ["dashboard-dev", "modulos-objetivo"],
+    "commonlyUses": ["revisor"],
+    "responsibilities": [
+      "Finanzas, piso, macro y rutas cron protegidas con CRON_SECRET.",
+      "Pantalla de objetivos y su sistema de módulos configurable en Neon.",
+      "Informar, nunca recomendar inversiones; todo precio con fecha."
+    ],
+    "functionalRelations": [
+      "dashboard-dev cubre todo salvo /objetivos; modulos-objetivo cubre esa sección según docs/OBJETIVOS.md."
+    ]
+  }
+]

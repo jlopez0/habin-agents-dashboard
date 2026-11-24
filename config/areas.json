@@ -1,0 +1,50 @@
+[
+  {
+    "id": "direction",
+    "name": "Dirección",
+    "description": "Quien decide y quien coordina el plan.",
+    "tone": "amber"
+  },
+  {
+    "id": "architecture",
+    "name": "Arquitectura y análisis",
+    "description": "Decidir, planificar y explorar antes de construir.",
+    "tone": "violet"
+  },
+  {
+    "id": "execution",
+    "name": "Ejecución",
+    "description": "Escribir código, textos y publicar.",
+    "tone": "sky"
+  },
+  {
+    "id": "quality",
+    "name": "Calidad y cumplimiento",
+    "description": "Revisar el resultado y los riesgos antes de cerrar.",
+    "tone": "orange"
+  },
+  {
+    "id": "business",
+    "name": "Negocio y mercado",
+    "description": "Validar ideas e investigar el mercado.",
+    "tone": "cyan"
+  },
+  {
+    "id": "paddock",
+    "name": "Paddock",
+    "description": "Especialistas · juego de fiesta (Flutter)",
+    "tone": "emerald"
+  },
+  {
+    "id": "parrotrip",
+    "name": "Parrotrip",
+    "description": "Especialistas · metabuscador de vuelos",
+    "tone": "emerald"
+  },
+  {
+    "id": "personal-dashboard",
+    "name": "personalDashboard",
+    "description": "Especialistas · dashboard personal",
+    "tone": "emerald"
+  }
+]

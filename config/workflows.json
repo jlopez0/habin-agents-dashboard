@@ -1,0 +1,688 @@
+[
+  {
+    "id": "standard",
+    "name": "Flujo diario estándar",
+    "description": "Flujo típico con la sesión principal: plan, fase, revisión y commit.",
+    "trigger": "Javier pide una tarea en el repo (Sonnet por defecto; Opus si toca decidir).",
+    "source": "habin-agents-gang/README.md",
+    "steps": [
+      {
+        "id": "s",
+        "type": "start",
+        "label": "Javier pide la tarea",
+        "detail": "La sesión delega sola según la descripción de cada agente, o se fuerza con @agente."
+      },
+      {
+        "id": "a",
+        "type": "agent",
+        "label": "Plan por fases",
+        "agentId": "arquitecto",
+        "detail": "Escribe docs/PLAN_<TEMA>.md con agente y modelo por fase."
+      },
+      {
+        "id": "b",
+        "type": "agent",
+        "label": "Ejecuta la fase N",
+        "agentId": "implementador",
+        "detail": "Build, lint y tests antes de terminar."
+      },
+      {
+        "id": "c",
+        "type": "agent",
+        "label": "Revisa el diff",
+        "agentId": "revisor",
+        "detail": "Contexto limpio; informe 🔴🟡⚪."
+      },
+      {
+        "id": "d",
+        "type": "decision",
+        "label": "¿Veredicto?"
+      },
+      {
+        "id": "e",
+        "type": "human",
+        "label": "Commit",
+        "detail": "Un commit pequeño y con sentido; el push es siempre manual."
+      },
+      {
+        "id": "f",
+        "type": "end",
+        "label": "Fase cerrada"
+      }
+    ],
+    "edges": [
+      {
+        "from": "s",
+        "to": "a",
+        "kind": "flow"
+      },
+      {
+        "from": "a",
+        "to": "b",
+        "kind": "delegation",
+        "label": "plan"
+      },
+      {
+        "from": "b",
+        "to": "c",
+        "kind": "review",
+        "label": "diff"
+      },
+      {
+        "from": "c",
+        "to": "d",
+        "kind": "flow"
+      },
+      {
+        "from": "d",
+        "to": "e",
+        "kind": "approval",
+        "label": "LISTO"
+      },
+      {
+        "from": "d",
+        "to": "b",
+        "kind": "loop",
+        "label": "NO LISTO",
+        "loop": true
+      },
+      {
+        "from": "e",
+        "to": "f",
+        "kind": "flow"
+      }
+    ]
+  },
+  {
+    "id": "jefe-loop",
+    "name": "Modo jefe: bucle por fase",
+    "description": "El jefe ejecuta un plan completo delegando fase a fase, con revisión y un commit por fase.",
+    "trigger": "claude --agent jefe --permission-mode acceptEdits en el repo.",
+    "source": "habin-agents-gang/agents/jefe.md",
+    "steps": [
+      {
+        "id": "s",
+        "type": "start",
+        "label": "Javier lanza al jefe"
+      },
+      {
+        "id": "r",
+        "type": "agent",
+        "label": "Lee el plan y resume el estado",
+        "agentId": "jefe",
+        "detail": "Máximo 8 líneas; espera el OK de Javier."
+      },
+      {
+        "id": "ok",
+        "type": "human",
+        "label": "OK de Javier",
+        "detail": "Punto de parada inicial."
+      },
+      {
+        "id": "amb",
+        "type": "decision",
+        "label": "¿Fase ambigua?"
+      },
+      {
+        "id": "arq",
+        "type": "agent",
+        "label": "Parte la fase en subtareas",
+        "agentId": "arquitecto",
+        "detail": "Cada subtarea con su agente."
+      },
+      {
+        "id": "del",
+        "type": "agent",
+        "label": "Delega la subtarea",
+        "agentId": "jefe",
+        "detail": "Prefiere los agentes del proyecto sobre los genéricos; encargos autocontenidos."
+      },
+      {
+        "id": "exe",
+        "type": "agent",
+        "label": "Ejecuta",
+        "agentId": "implementador",
+        "detail": "Agente de código del proyecto o implementador; mecanico, redactor-es o release-movil según el tipo."
+      },
+      {
+        "id": "rev",
+        "type": "agent",
+        "label": "Cierra la fase",
+        "agentId": "revisor",
+        "detail": "Veredicto LISTO / NO LISTO."
+      },
+      {
+        "id": "dec",
+        "type": "decision",
+        "label": "¿LISTO y tests en verde?"
+      },
+      {
+        "id": "stop",
+        "type": "human",
+        "label": "Punto de parada",
+        "detail": "Irreversible o fuera del repo, decisión de producto, 2 fallos del mismo agente, 2 vueltas sin pasar, hito con fecha."
+      },
+      {
+        "id": "com",
+        "type": "agent",
+        "label": "Commit por fase + bitácora",
+        "agentId": "jefe",
+        "detail": "git add + commit; nunca push. Resumen ≤5 líneas."
+      },
+      {
+        "id": "more",
+        "type": "decision",
+        "label": "¿Más fases?"
+      },
+      {
+        "id": "end",
+        "type": "end",
+        "label": "Plan completado"
+      }
+    ],
+    "edges": [
+      {
+        "from": "s",
+        "to": "r",
+        "kind": "flow"
+      },
+      {
+        "from": "r",
+        "to": "ok",
+        "kind": "flow"
+      },
+      {
+        "from": "ok",
+        "to": "amb",
+        "kind": "flow"
+      },
+      {
+        "from": "amb",
+        "to": "arq",
+        "kind": "delegation",
+        "label": "sí"
+      },
+      {
+        "from": "amb",
+        "to": "del",
+        "kind": "flow",
+        "label": "no"
+      },
+      {
+        "from": "arq",
+        "to": "del",
+        "kind": "flow",
+        "label": "subtareas"
+      },
+      {
+        "from": "del",
+        "to": "exe",
+        "kind": "delegation",
+        "label": "encargo"
+      },
+      {
+        "from": "exe",
+        "to": "rev",
+        "kind": "review",
+        "label": "fase hecha"
+      },
+      {
+        "from": "rev",
+        "to": "dec",
+        "kind": "flow"
+      },
+      {
+        "from": "dec",
+        "to": "com",
+        "kind": "approval",
+        "label": "LISTO"
+      },
+      {
+        "from": "dec",
+        "to": "exe",
+        "kind": "loop",
+        "label": "NO LISTO (máx. 2 vueltas)",
+        "loop": true
+      },
+      {
+        "from": "dec",
+        "to": "stop",
+        "kind": "escalation",
+        "label": "sigue sin pasar"
+      },
+      {
+        "from": "com",
+        "to": "more",
+        "kind": "flow"
+      },
+      {
+        "from": "more",
+        "to": "amb",
+        "kind": "loop",
+        "label": "sí",
+        "loop": true
+      },
+      {
+        "from": "more",
+        "to": "end",
+        "kind": "flow",
+        "label": "no"
+      }
+    ]
+  },
+  {
+    "id": "escalation",
+    "name": "Escalado de fallos",
+    "description": "Cuando el implementador no consigue pasar los tests, no insiste: escala.",
+    "trigger": "Tests fallan dos veces por lo mismo.",
+    "source": "habin-agents-gang/CLAUDE.md",
+    "steps": [
+      {
+        "id": "s",
+        "type": "start",
+        "label": "Fase en curso"
+      },
+      {
+        "id": "imp",
+        "type": "agent",
+        "label": "Implementa y prueba",
+        "agentId": "implementador"
+      },
+      {
+        "id": "dec",
+        "type": "decision",
+        "label": "¿Falla 2 veces lo mismo?"
+      },
+      {
+        "id": "diag",
+        "type": "agent",
+        "label": "Devuelve el diagnóstico",
+        "agentId": "implementador",
+        "detail": "Para y devuelve el diagnóstico."
+      },
+      {
+        "id": "arq",
+        "type": "agent",
+        "label": "Decide la salida",
+        "agentId": "arquitecto",
+        "detail": "Reformula el plan o la subtarea."
+      },
+      {
+        "id": "ok",
+        "type": "end",
+        "label": "Fase continúa"
+      }
+    ],
+    "edges": [
+      {
+        "from": "s",
+        "to": "imp",
+        "kind": "flow"
+      },
+      {
+        "from": "imp",
+        "to": "dec",
+        "kind": "flow"
+      },
+      {
+        "from": "dec",
+        "to": "ok",
+        "kind": "flow",
+        "label": "no"
+      },
+      {
+        "from": "dec",
+        "to": "diag",
+        "kind": "escalation",
+        "label": "sí"
+      },
+      {
+        "from": "diag",
+        "to": "arq",
+        "kind": "escalation",
+        "label": "escala"
+      },
+      {
+        "from": "arq",
+        "to": "imp",
+        "kind": "loop",
+        "label": "plan ajustado",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "id": "risk-review",
+    "name": "Cambios de riesgo",
+    "description": "Auth, pagos, datos, migraciones y borrados pasan siempre por el revisor.",
+    "trigger": "El cambio toca auth, pagos, datos, migraciones o borrados.",
+    "source": "habin-agents-gang/CLAUDE.md",
+    "steps": [
+      {
+        "id": "s",
+        "type": "start",
+        "label": "Cambio de riesgo"
+      },
+      {
+        "id": "imp",
+        "type": "agent",
+        "label": "Implementa",
+        "agentId": "implementador"
+      },
+      {
+        "id": "rev",
+        "type": "agent",
+        "label": "Revisa siempre",
+        "agentId": "revisor",
+        "detail": "Obligatorio antes de cerrar."
+      },
+      {
+        "id": "dec",
+        "type": "decision",
+        "label": "¿LISTO?"
+      },
+      {
+        "id": "end",
+        "type": "end",
+        "label": "Cierre"
+      }
+    ],
+    "edges": [
+      {
+        "from": "s",
+        "to": "imp",
+        "kind": "flow"
+      },
+      {
+        "from": "imp",
+        "to": "rev",
+        "kind": "review",
+        "label": "diff"
+      },
+      {
+        "from": "rev",
+        "to": "dec",
+        "kind": "flow"
+      },
+      {
+        "from": "dec",
+        "to": "end",
+        "kind": "approval",
+        "label": "LISTO"
+      },
+      {
+        "from": "dec",
+        "to": "imp",
+        "kind": "loop",
+        "label": "NO LISTO",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "id": "idea-validation",
+    "name": "Validación de una idea",
+    "description": "Antes de construir algo nuevo: puntuar, decidir y validar con el experimento más barato.",
+    "trigger": "Idea nueva o gran ampliación de alcance.",
+    "source": "habin-agents-gang/agents/validador-idea.md",
+    "steps": [
+      {
+        "id": "s",
+        "type": "start",
+        "label": "Idea nueva"
+      },
+      {
+        "id": "val",
+        "type": "agent",
+        "label": "Evalúa la idea",
+        "agentId": "validador-idea",
+        "detail": "7 criterios de 1 a 5; escéptico y directo."
+      },
+      {
+        "id": "dec1",
+        "type": "decision",
+        "label": "¿Falta evidencia?"
+      },
+      {
+        "id": "inv",
+        "type": "agent",
+        "label": "Ficha de mercado",
+        "agentId": "investigador-mercado",
+        "detail": "docs/mercado/<tema>.md con fuentes y fecha."
+      },
+      {
+        "id": "ver",
+        "type": "agent",
+        "label": "Veredicto y experimento",
+        "agentId": "validador-idea",
+        "detail": "SEGUIR, AJUSTAR o DESCARTAR; experimento ≤1 semana."
+      },
+      {
+        "id": "jav",
+        "type": "human",
+        "label": "Javier decide",
+        "detail": "La decisión se registra en docs/decisions.md."
+      },
+      {
+        "id": "arq",
+        "type": "agent",
+        "label": "Plan del proyecto",
+        "agentId": "arquitecto",
+        "detail": "Solo si se sigue."
+      },
+      {
+        "id": "end",
+        "type": "end",
+        "label": "Descartada o planificada"
+      }
+    ],
+    "edges": [
+      {
+        "from": "s",
+        "to": "val",
+        "kind": "flow"
+      },
+      {
+        "from": "val",
+        "to": "dec1",
+        "kind": "flow"
+      },
+      {
+        "from": "dec1",
+        "to": "inv",
+        "kind": "delegation",
+        "label": "sí"
+      },
+      {
+        "from": "dec1",
+        "to": "ver",
+        "kind": "flow",
+        "label": "no"
+      },
+      {
+        "from": "inv",
+        "to": "ver",
+        "kind": "flow",
+        "label": "ficha"
+      },
+      {
+        "from": "ver",
+        "to": "jav",
+        "kind": "approval",
+        "label": "veredicto"
+      },
+      {
+        "from": "jav",
+        "to": "arq",
+        "kind": "delegation",
+        "label": "SEGUIR / AJUSTAR"
+      },
+      {
+        "from": "jav",
+        "to": "end",
+        "kind": "flow",
+        "label": "DESCARTAR"
+      },
+      {
+        "from": "arq",
+        "to": "end",
+        "kind": "flow"
+      }
+    ]
+  },
+  {
+    "id": "store-release",
+    "name": "Publicación en tiendas",
+    "description": "Preparación y verificación de la salida a Google Play y App Store; la subida requiere OK explícito.",
+    "trigger": "Release o rechazo de tienda; activar cobros.",
+    "source": "habin-agents-gang/agents/release-movil.md · cumplimiento.md",
+    "steps": [
+      {
+        "id": "s",
+        "type": "start",
+        "label": "Release en marcha"
+      },
+      {
+        "id": "cum",
+        "type": "agent",
+        "label": "Riesgos de tiendas, RGPD y licencias",
+        "agentId": "cumplimiento",
+        "detail": "Informe en docs/cumplimiento/."
+      },
+      {
+        "id": "rel",
+        "type": "agent",
+        "label": "Checklist de publicación",
+        "agentId": "release-movil",
+        "detail": "IDs, firma, targetSdk, PrivacyInfo, política, capturas."
+      },
+      {
+        "id": "rev",
+        "type": "agent",
+        "label": "Revisión final",
+        "agentId": "revisor"
+      },
+      {
+        "id": "ok",
+        "type": "human",
+        "label": "OK explícito de Javier",
+        "detail": "Nada se envía a tiendas ni a TestFlight sin este paso."
+      },
+      {
+        "id": "man",
+        "type": "human",
+        "label": "Subida manual",
+        "detail": "Cuentas, pagos y formularios: tarea en Todoist."
+      },
+      {
+        "id": "end",
+        "type": "end",
+        "label": "Publicada"
+      }
+    ],
+    "edges": [
+      {
+        "from": "s",
+        "to": "cum",
+        "kind": "flow"
+      },
+      {
+        "from": "s",
+        "to": "rel",
+        "kind": "flow"
+      },
+      {
+        "from": "cum",
+        "to": "rev",
+        "kind": "review",
+        "label": "riesgos"
+      },
+      {
+        "from": "rel",
+        "to": "rev",
+        "kind": "review",
+        "label": "checklist"
+      },
+      {
+        "from": "rev",
+        "to": "ok",
+        "kind": "approval",
+        "label": "LISTO"
+      },
+      {
+        "from": "ok",
+        "to": "man",
+        "kind": "flow"
+      },
+      {
+        "from": "man",
+        "to": "end",
+        "kind": "flow"
+      }
+    ]
+  },
+  {
+    "id": "paddock-content",
+    "name": "Contenido de un juego (Paddock)",
+    "description": "El desarrollador deja marcadores y el especialista de contenido rellena respetando niveles y normas de tiendas.",
+    "trigger": "Juego o mecánica nueva en Paddock que necesita textos.",
+    "source": "Paddock/.claude/agents/juego-flutter.md · contenido-fiesta.md",
+    "steps": [
+      {
+        "id": "s",
+        "type": "start",
+        "label": "Juego nuevo"
+      },
+      {
+        "id": "dev",
+        "type": "agent",
+        "label": "Implementa el juego",
+        "agentId": "juego-flutter",
+        "detail": "Deja TODO-CONTENIDO donde faltan textos."
+      },
+      {
+        "id": "con",
+        "type": "agent",
+        "label": "Escribe y limpia las cartas",
+        "agentId": "contenido-fiesta",
+        "detail": "Niveles Suave, Picante, Atrevido; flutter test test/content_test.dart."
+      },
+      {
+        "id": "rev",
+        "type": "agent",
+        "label": "Revisa el diff",
+        "agentId": "revisor"
+      },
+      {
+        "id": "end",
+        "type": "end",
+        "label": "Listo para plan de publicación"
+      }
+    ],
+    "edges": [
+      {
+        "from": "s",
+        "to": "dev",
+        "kind": "flow"
+      },
+      {
+        "from": "dev",
+        "to": "con",
+        "kind": "delegation",
+        "label": "pide textos"
+      },
+      {
+        "from": "con",
+        "to": "rev",
+        "kind": "review",
+        "label": "diff"
+      },
+      {
+        "from": "rev",
+        "to": "end",
+        "kind": "approval",
+        "label": "LISTO"
+      }
+    ]
+  }
+]

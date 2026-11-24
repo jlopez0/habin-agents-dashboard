@@ -1,0 +1,1075 @@
+[
+  {
+    "id": "javier",
+    "name": "Javier",
+    "role": "Director · decisor final",
+    "summary": "Habla con el jefe, aprueba lo irreversible y hace lo manual.",
+    "description": "Desarrollador en solitario con varios proyectos; su objetivo es publicar y generar ingresos. Es el único que decide sobre lo irreversible o fuera del repo.",
+    "kind": "human",
+    "areaId": "direction",
+    "teamIds": [],
+    "reportsTo": null,
+    "tools": {
+      "inherits": false,
+      "allowed": [],
+      "denied": [],
+      "note": "No aplica: es una persona."
+    },
+    "responsibilities": [
+      "Dar las órdenes principales (sesión con el jefe o con un agente concreto).",
+      "Aprobar puntos de parada: subir a tiendas, crear cuentas, pagar, publicar, cambiar IDs de app.",
+      "Hacer las tareas manuales (consolas de tiendas, correo, testers, firmas).",
+      "Decidir tras el veredicto del validador de ideas."
+    ],
+    "outputs": [
+      "Decisiones en docs/decisions.md",
+      "Tareas manuales en Todoist"
+    ],
+    "permissions": {
+      "writeScope": "Todo",
+      "canCommit": "si",
+      "canPush": true,
+      "notes": [
+        "Push siempre manual: ningún agente hace push."
+      ]
+    },
+    "autonomy": {
+      "level": 3,
+      "label": "Decisor",
+      "stopConditions": []
+    },
+    "context": {
+      "reads": [
+        "Resúmenes de cada agente",
+        "Plan del repo"
+      ],
+      "memory": "Todoist es donde mira: todo aviso accionable se crea allí."
+    },
+    "currentTasks": []
+  },
+  {
+    "id": "jefe",
+    "name": "jefe",
+    "role": "Coordinador del equipo",
+    "summary": "Ejecuta un plan por fases delegando en el resto. No escribe código.",
+    "description": "Sesión principal (claude --agent jefe). Lee el plan del repo, delega cada subtarea en el agente adecuado, verifica con el revisor, hace un commit por fase y solo para en lo irreversible o en lo que toca a Javier.",
+    "kind": "coordinator",
+    "areaId": "direction",
+    "teamIds": [
+      "core"
+    ],
+    "reportsTo": "javier",
+    "model": "opus",
+    "effort": "medium",
+    "accent": "red",
+    "tools": {
+      "inherits": true,
+      "allowed": [],
+      "denied": [],
+      "note": "Sin lista de herramientas en el frontmatter: hereda las de la sesión. No escribe código ni contenido."
+    },
+    "responsibilities": [
+      "Mantener el plan (docs/PLAN_*.md) como fuente de verdad y la ‘Bitácora del jefe’.",
+      "Pedir al arquitecto que parta fases ambiguas en subtareas.",
+      "Delegar en agentes del proyecto antes que en los genéricos.",
+      "Cerrar cada fase con revisor, tests en verde y un commit.",
+      "Crear en Todoist (o docs/PENDIENTE_JAVIER.md) lo que solo puede hacer Javier."
+    ],
+    "outputs": [
+      "Un commit por fase",
+      "Bitácora del jefe",
+      "Resumen a Javier en ≤5 líneas"
+    ],
+    "permissions": {
+      "writeScope": "Plan y bitácora; git add + commit por fase",
+      "canCommit": "si",
+      "canPush": false,
+      "notes": [
+        "Nunca push.",
+        "No lee código: usa Explore o el agente correspondiente."
+      ]
+    },
+    "autonomy": {
+      "level": 3,
+      "label": "Coordina y decide dentro del plan",
+      "stopConditions": [
+        "Algo irreversible o fuera del repo (tiendas, cuentas, pagos, IDs, borrados)",
+        "Decisión de producto no resuelta en el plan",
+        "Un agente falla dos veces en lo mismo",
+        "Revisor da NO LISTO tras 2 vueltas",
+        "Hito con fecha que necesita a Javier"
+      ]
+    },
+    "context": {
+      "reads": [
+        "docs/PLAN_*.md",
+        "docs/decisions.md",
+        "CLAUDE.md global y del repo"
+      ],
+      "memory": "Sin memoria propia: el estado vive en el plan y su bitácora; si se corta la sesión, retoma desde ahí.",
+      "notes": "Si le queda poco contexto, actualiza plan y bitácora y pide reiniciar."
+    },
+    "source": "habin-agents-gang/agents/jefe.md",
+    "currentTasks": []
+  },
+  {
+    "id": "arquitecto",
+    "name": "arquitecto",
+    "role": "Arquitecto y planificador",
+    "summary": "Decide opciones y parte el trabajo en fases verificables.",
+    "description": "Diseña y parte en fases el trabajo ambiguo o de arquitectura. Compara opciones con tabla corta, recomienda una y escribe el plan en docs/. No escribe código de producción.",
+    "kind": "core",
+    "areaId": "architecture",
+    "teamIds": [
+      "core"
+    ],
+    "reportsTo": "jefe",
+    "model": "opus",
+    "effort": "high",
+    "accent": "purple",
+    "tools": {
+      "inherits": false,
+      "allowed": [
+        "Read",
+        "Grep",
+        "Glob",
+        "Bash",
+        "Write",
+        "Edit",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "denied": []
+    },
+    "responsibilities": [
+      "Comparar opciones (coste, riesgo, reversibilidad) y recomendar una.",
+      "Escribir docs/PLAN_<TEMA>.md con fases, criterio de hecho y agente + modelo recomendados.",
+      "Registrar decisiones en docs/decisions.md.",
+      "Señalar lo irreversible (IDs de app, esquemas públicos, migraciones)."
+    ],
+    "outputs": [
+      "docs/PLAN_<TEMA>.md",
+      "docs/decisions.md",
+      "Resumen ≤10 líneas"
+    ],
+    "permissions": {
+      "writeScope": "Solo docs/",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "No toca código de producción."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta su encargo",
+      "stopConditions": [
+        "Respeta las restricciones duras del CLAUDE.md del repo"
+      ]
+    },
+    "context": {
+      "reads": [
+        "CLAUDE.md",
+        "AGENTS.md",
+        "docs/",
+        "código relevante"
+      ],
+      "memory": "Sin memoria propia; deja el conocimiento en docs/."
+    },
+    "source": "habin-agents-gang/agents/arquitecto.md",
+    "currentTasks": []
+  },
+  {
+    "id": "explore",
+    "name": "Explore",
+    "role": "Explorador de código (integrado)",
+    "summary": "Búsqueda de solo lectura; no cambia nada.",
+    "description": "Subagente integrado de Claude Code para explorar el repositorio sin modificarlo. No forma parte de habin-agents-gang pero figura en la tabla de enrutado.",
+    "kind": "builtin",
+    "areaId": "architecture",
+    "teamIds": [
+      "core"
+    ],
+    "reportsTo": "jefe",
+    "tools": {
+      "inherits": true,
+      "allowed": [],
+      "denied": [
+        "Agent",
+        "Edit",
+        "Write",
+        "NotebookEdit"
+      ],
+      "note": "Todas las herramientas salvo las de escritura y Agent."
+    },
+    "responsibilities": [
+      "Localizar código y entender estructura sin cambiar nada.",
+      "Evitar que el jefe lea código directamente (ahorro de contexto)."
+    ],
+    "outputs": [
+      "Conclusiones breves"
+    ],
+    "permissions": {
+      "writeScope": "Ninguno (solo lectura)",
+      "canCommit": "no",
+      "canPush": false,
+      "notes": []
+    },
+    "autonomy": {
+      "level": 0,
+      "label": "Solo lectura",
+      "stopConditions": []
+    },
+    "context": {
+      "reads": [
+        "Repositorio"
+      ],
+      "memory": "Sin memoria."
+    },
+    "source": "Integrado en Claude Code",
+    "currentTasks": []
+  },
+  {
+    "id": "implementador",
+    "name": "implementador",
+    "role": "Desarrollador de fases",
+    "summary": "Ejecuta una fase o tarea ya especificada.",
+    "description": "Escribe código cuando no hay decisiones de arquitectura pendientes. Ejecuta solo lo pedido, pasa build, lint y tests, y no improvisa arquitectura.",
+    "kind": "core",
+    "areaId": "execution",
+    "teamIds": [
+      "core"
+    ],
+    "reportsTo": "jefe",
+    "model": "sonnet",
+    "effort": "medium",
+    "accent": "blue",
+    "tools": {
+      "inherits": true,
+      "allowed": [],
+      "denied": [
+        "Agent"
+      ],
+      "note": "Hereda herramientas; no puede lanzar otros agentes."
+    },
+    "responsibilities": [
+      "Ejecutar la fase con cambios pequeños siguiendo los patrones del repo.",
+      "Pasar build, analyze/lint y tests antes de terminar.",
+      "Marcar la fase como hecha en el plan.",
+      "Devolver la decisión pendiente en vez de improvisar."
+    ],
+    "outputs": [
+      "Archivos cambiados",
+      "Resultado de tests",
+      "Decisiones tomadas (≤10 líneas)"
+    ],
+    "permissions": {
+      "writeScope": "Código del repo, según la tarea",
+      "canCommit": "bajo-peticion",
+      "canPush": false,
+      "notes": [
+        "No hace commit salvo que se lo pidan.",
+        "Sin refactors oportunistas.",
+        "Nunca secretos ni datos personales en código."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta tareas especificadas",
+      "stopConditions": [
+        "La tarea exige una decisión no resuelta por el plan",
+        "Tests fallan dos veces por lo mismo → escala a arquitecto"
+      ]
+    },
+    "context": {
+      "reads": [
+        "CLAUDE.md",
+        "AGENTS.md",
+        "plan o tarea indicada"
+      ],
+      "memory": "Sin memoria propia."
+    },
+    "source": "habin-agents-gang/agents/implementador.md",
+    "currentTasks": []
+  },
+  {
+    "id": "mecanico",
+    "name": "mecanico",
+    "role": "Cambios mecánicos y masivos",
+    "summary": "Renombrados, boilerplate, strings a i18n, buscar y reemplazar.",
+    "description": "Hace cambios repetitivos con precisión y exactamente lo indicado. Los casos ambiguos no se tocan: se listan al final.",
+    "kind": "core",
+    "areaId": "execution",
+    "teamIds": [
+      "core"
+    ],
+    "reportsTo": "jefe",
+    "model": "haiku",
+    "effort": "low",
+    "accent": "gray",
+    "tools": {
+      "inherits": false,
+      "allowed": [
+        "Read",
+        "Edit",
+        "Write",
+        "Grep",
+        "Glob",
+        "Bash"
+      ],
+      "denied": []
+    },
+    "responsibilities": [
+      "Renombrados, mover textos a i18n, actualizar imports, datos de prueba.",
+      "Ejecutar build o analyze tras el cambio.",
+      "Listar los casos ambiguos sin tocarlos."
+    ],
+    "outputs": [
+      "Nº de archivos tocados",
+      "Casos ambiguos",
+      "Resultado del build (≤8 líneas)"
+    ],
+    "permissions": {
+      "writeScope": "Archivos indicados en el encargo",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "Sin interpretar ni mejorar nada más."
+      ]
+    },
+    "autonomy": {
+      "level": 1,
+      "label": "Acotado",
+      "stopConditions": [
+        "Cualquier caso ambiguo: se lista, no se cambia"
+      ]
+    },
+    "context": {
+      "reads": [
+        "Encargo"
+      ],
+      "memory": "Sin memoria propia."
+    },
+    "source": "habin-agents-gang/agents/mecanico.md",
+    "currentTasks": []
+  },
+  {
+    "id": "redactor-es",
+    "name": "redactor-es",
+    "role": "Redactor en español de España",
+    "summary": "Microcopy, fichas de tienda, notas de versión y contenido.",
+    "description": "Escribe y revisa textos en español natural y claro: microcopy de UI, fichas de tienda, notas de versión, páginas legales sencillas, correos (borrador) y contenido de juegos.",
+    "kind": "core",
+    "areaId": "execution",
+    "teamIds": [
+      "core"
+    ],
+    "reportsTo": "jefe",
+    "model": "opus",
+    "effort": "medium",
+    "accent": "green",
+    "tools": {
+      "inherits": false,
+      "allowed": [
+        "Read",
+        "Edit",
+        "Write",
+        "Grep",
+        "Glob"
+      ],
+      "denied": []
+    },
+    "responsibilities": [
+      "Microcopy coherente con los textos existentes del repo.",
+      "Respetar glosario y reglas de texto del CLAUDE.md del proyecto.",
+      "Contenido original y conforme a las normas de las tiendas."
+    ],
+    "outputs": [
+      "Resumen de cambios (≤8 líneas)"
+    ],
+    "permissions": {
+      "writeScope": "Archivos de texto y contenido",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "Correos y mensajes: solo borradores.",
+        "Mantiene el formato exacto de JSON/ARB y pasa los tests de contenido."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta tareas especificadas",
+      "stopConditions": []
+    },
+    "context": {
+      "reads": [
+        "CLAUDE.md del proyecto",
+        "textos existentes"
+      ],
+      "memory": "Sin memoria propia."
+    },
+    "source": "habin-agents-gang/agents/redactor-es.md",
+    "currentTasks": []
+  },
+  {
+    "id": "release-movil",
+    "name": "release-movil",
+    "role": "Responsable de publicación móvil",
+    "summary": "Prepara y verifica Google Play y App Store (Flutter).",
+    "description": "Checklist de publicación: IDs, firma, targetSdk, PrivacyInfo, política de privacidad, Codemagic, capturas y ficha. Atiende cualquier rechazo de tienda.",
+    "kind": "core",
+    "areaId": "execution",
+    "teamIds": [
+      "core"
+    ],
+    "reportsTo": "jefe",
+    "model": "sonnet",
+    "effort": "medium",
+    "accent": "cyan",
+    "tools": {
+      "inherits": false,
+      "allowed": [
+        "Read",
+        "Edit",
+        "Write",
+        "Grep",
+        "Glob",
+        "Bash",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "denied": []
+    },
+    "responsibilities": [
+      "Verificar cada punto de la checklist (✅ / ❌ / ➖).",
+      "Comprobar normas vigentes de las tiendas antes de afirmar.",
+      "Listar los pasos que requieren a Javier (cuentas, pagos, formularios)."
+    ],
+    "outputs": [
+      "Checklist con estado",
+      "Siguientes pasos para Javier"
+    ],
+    "permissions": {
+      "writeScope": "Configuración de release del repo",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "Nunca sube keystores, key.properties, certificados ni claves a git.",
+        "No envía nada a tiendas ni TestFlight sin OK explícito."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta tareas especificadas",
+      "stopConditions": [
+        "Cualquier envío a tiendas o TestFlight necesita OK explícito",
+        "Cambio de applicationId / Bundle ID: confirmar antes"
+      ]
+    },
+    "context": {
+      "reads": [
+        "pubspec.yaml",
+        "configuración Android/iOS",
+        "políticas oficiales de tiendas"
+      ],
+      "memory": "Sin memoria propia."
+    },
+    "source": "habin-agents-gang/agents/release-movil.md",
+    "currentTasks": []
+  },
+  {
+    "id": "revisor",
+    "name": "revisor",
+    "role": "Revisor de cambios",
+    "summary": "Revisa el diff con contexto limpio antes de cerrar.",
+    "description": "No ha visto cómo se escribió el código: juzga el resultado. Ejecuta build, lint y tests; informa por gravedad y da veredicto LISTO / NO LISTO. Solo lee y ejecuta tests; no edita.",
+    "kind": "core",
+    "areaId": "quality",
+    "teamIds": [
+      "core"
+    ],
+    "reportsTo": "jefe",
+    "model": "sonnet",
+    "effort": "high",
+    "accent": "orange",
+    "tools": {
+      "inherits": false,
+      "allowed": [
+        "Read",
+        "Grep",
+        "Glob",
+        "Bash"
+      ],
+      "denied": []
+    },
+    "responsibilities": [
+      "Revisar git diff contra las restricciones duras del repo.",
+      "Ejecutar build, analyze/lint y tests.",
+      "Informe ≤15 líneas: 🔴 bloqueante, 🟡 debería arreglarse, ⚪ menor."
+    ],
+    "outputs": [
+      "Informe con archivo:línea",
+      "Veredicto LISTO / NO LISTO"
+    ],
+    "permissions": {
+      "writeScope": "Ninguno (solo lectura y tests)",
+      "canCommit": "no",
+      "canPush": false,
+      "notes": [
+        "No edita archivos ni hace commit."
+      ]
+    },
+    "autonomy": {
+      "level": 1,
+      "label": "Acotado",
+      "stopConditions": []
+    },
+    "context": {
+      "reads": [
+        "git diff",
+        "CLAUDE.md",
+        "AGENTS.md"
+      ],
+      "memory": "Contexto limpio a propósito: no hereda el historial."
+    },
+    "source": "habin-agents-gang/agents/revisor.md",
+    "currentTasks": []
+  },
+  {
+    "id": "cumplimiento",
+    "name": "cumplimiento",
+    "role": "Responsable de cumplimiento",
+    "summary": "Riesgos de tiendas, RGPD, licencias, afiliación y monetización.",
+    "description": "Detecta riesgos y propone el arreglo más sencillo. No es asesoría legal: ante consecuencias serias recomienda consultar a un profesional.",
+    "kind": "core",
+    "areaId": "quality",
+    "teamIds": [
+      "core"
+    ],
+    "reportsTo": "jefe",
+    "model": "opus",
+    "effort": "medium",
+    "accent": "orange",
+    "tools": {
+      "inherits": false,
+      "allowed": [
+        "Read",
+        "Grep",
+        "Glob",
+        "Write",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "denied": []
+    },
+    "responsibilities": [
+      "Revisar tiendas, privacidad, licencias, afiliación/APIs y monetización en España.",
+      "Citar fuente oficial y fecha de cada norma; marcar ❓ si no se puede verificar.",
+      "Informe ordenado por gravedad con el arreglo propuesto."
+    ],
+    "outputs": [
+      "docs/cumplimiento/<fecha>-<tema>.md",
+      "Los 3 riesgos más graves (≤10 líneas)"
+    ],
+    "permissions": {
+      "writeScope": "docs/cumplimiento/",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "No presenta nada como asesoría legal o fiscal definitiva.",
+        "No copia textos legales: parafrasea."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta tareas especificadas",
+      "stopConditions": [
+        "Puntos con consecuencias económicas o legales serias → recomendar profesional"
+      ]
+    },
+    "context": {
+      "reads": [
+        "CLAUDE.md",
+        "docs/ (privacidad, planes)",
+        "código o contenido afectado"
+      ],
+      "memory": "Sin memoria propia."
+    },
+    "source": "habin-agents-gang/agents/cumplimiento.md",
+    "currentTasks": []
+  },
+  {
+    "id": "investigador-mercado",
+    "name": "investigador-mercado",
+    "role": "Investigador de mercado",
+    "summary": "Competidores, precios y palabras clave, con fuentes.",
+    "description": "Investiga el mercado de una idea o app y entrega una ficha de una página. Cada dato lleva fuente y fecha; lo no verificable se marca como estimación.",
+    "kind": "core",
+    "areaId": "business",
+    "teamIds": [
+      "core"
+    ],
+    "reportsTo": "jefe",
+    "model": "sonnet",
+    "effort": "medium",
+    "accent": "cyan",
+    "tools": {
+      "inherits": false,
+      "allowed": [
+        "Read",
+        "Grep",
+        "Glob",
+        "Write",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "denied": []
+    },
+    "responsibilities": [
+      "Aclarar qué se decide (construir, precio, posicionamiento).",
+      "Analizar 3–8 competidores y palabras clave de tienda.",
+      "Distinguir hecho de opinión; nunca inventar cifras."
+    ],
+    "outputs": [
+      "docs/mercado/<tema>.md",
+      "Resumen de 3 líneas"
+    ],
+    "permissions": {
+      "writeScope": "docs/mercado/",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "Prefiere fuentes primarias; parafrasea."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta tareas especificadas",
+      "stopConditions": []
+    },
+    "context": {
+      "reads": [
+        "Repo y fichas existentes",
+        "Web"
+      ],
+      "memory": "Sin memoria propia."
+    },
+    "source": "habin-agents-gang/agents/investigador-mercado.md",
+    "currentTasks": []
+  },
+  {
+    "id": "validador-idea",
+    "name": "validador-idea",
+    "role": "Validador de ideas",
+    "summary": "Seguir, ajustar o descartar, con puntuación y experimento.",
+    "description": "Escéptico y útil: puntúa 7 criterios de 1 a 5, da veredicto SEGUIR / AJUSTAR / DESCARTAR y propone el experimento más barato (≤1 semana).",
+    "kind": "core",
+    "areaId": "business",
+    "teamIds": [
+      "core"
+    ],
+    "reportsTo": "jefe",
+    "model": "opus",
+    "effort": "medium",
+    "accent": "red",
+    "tools": {
+      "inherits": false,
+      "allowed": [
+        "Read",
+        "Grep",
+        "Glob",
+        "Write"
+      ],
+      "denied": []
+    },
+    "responsibilities": [
+      "Puntuar tiempo, ingresos, ventaja, encaje, mantenimiento, riesgo y coste de oportunidad.",
+      "Exigir más puntuación si hay un proyecto activo sin publicar.",
+      "Pedir ficha a investigador-mercado si falta evidencia."
+    ],
+    "outputs": [
+      "docs/ideas/<nombre>.md",
+      "Puntuación, veredicto y experimento (≤10 líneas)"
+    ],
+    "permissions": {
+      "writeScope": "docs/ideas/ y docs/decisions.md",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "Directo: no suaviza un veredicto negativo.",
+        "No inventa datos de mercado."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta tareas especificadas",
+      "stopConditions": [
+        "Si faltan datos para puntuar, hace una sola pregunta"
+      ]
+    },
+    "context": {
+      "reads": [
+        "docs/",
+        "CLAUDE.md",
+        "fichas de docs/mercado/"
+      ],
+      "memory": "Contexto fijo: desarrollador solo, stack Flutter, Next.js, FastAPI y AWS Lambda."
+    },
+    "source": "habin-agents-gang/agents/validador-idea.md",
+    "currentTasks": []
+  },
+  {
+    "id": "contenido-fiesta",
+    "name": "contenido-fiesta",
+    "role": "Contenido de juegos de Paddock",
+    "summary": "Escribe y limpia las cartas respetando niveles y normas.",
+    "description": "Responsable de contenido de Paddock: Yo nunca, ¿Qué preferirías?, ¿Quién es más probable?, retos, Infiltrado, Trivia y Abecedario. Beber es solo un modo opcional de consecuencias.",
+    "kind": "specialist",
+    "areaId": "paddock",
+    "teamIds": [
+      "paddock"
+    ],
+    "reportsTo": "jefe",
+    "model": "opus",
+    "effort": "medium",
+    "accent": "pink",
+    "tools": {
+      "inherits": false,
+      "allowed": [
+        "Read",
+        "Edit",
+        "Write",
+        "Grep",
+        "Glob",
+        "Bash"
+      ],
+      "denied": []
+    },
+    "responsibilities": [
+      "Mantener niveles Suave, Picante y Atrevido (~100 cartas por mazo en Suave).",
+      "Aplicar lo siempre prohibido en tiendas (alcohol festivo, riesgo físico, odio, menores, drogas).",
+      "Marcar fuente y licencia (CC BY-SA 4.0) de Open Trivia DB; ampliar la lista negra de tests."
+    ],
+    "outputs": [
+      "Cartas añadidas, reescritas y eliminadas por nivel",
+      "Resultado de flutter test test/content_test.dart"
+    ],
+    "permissions": {
+      "writeScope": "assets/content/es/",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "ids únicos y estables; no reutiliza ids borrados.",
+        "No copia textos de otras apps ni programas."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta tareas especificadas",
+      "stopConditions": [
+        "Si una frase no se puede salvar, la elimina"
+      ]
+    },
+    "context": {
+      "reads": [
+        "docs/PLAN_PUBLICACION.md (Fases 1 y 2)",
+        "SPEC.md",
+        "lib/core/content/prompts.dart"
+      ],
+      "memory": "Sin memoria propia."
+    },
+    "source": "Paddock/.claude/agents/contenido-fiesta.md",
+    "currentTasks": []
+  },
+  {
+    "id": "juego-flutter",
+    "name": "juego-flutter",
+    "role": "Desarrollador Flutter de Paddock",
+    "summary": "Juegos y mecánicas con el patrón GameModule.",
+    "description": "Implementa juegos nuevos (Infiltrado, ¿Quién es más probable?, Patata caliente, la Copa, fichas) en Flutter + go_router, 100 % offline, sin red, analítica ni anuncios.",
+    "kind": "specialist",
+    "areaId": "paddock",
+    "teamIds": [
+      "paddock"
+    ],
+    "reportsTo": "jefe",
+    "model": "sonnet",
+    "effort": "high",
+    "accent": "yellow",
+    "tools": {
+      "inherits": true,
+      "allowed": [],
+      "denied": [
+        "Agent"
+      ]
+    },
+    "responsibilities": [
+      "Cada juego implementa GameModule y se registra en registry.dart.",
+      "Reutilizar PromptDeckModule para juegos de cartas.",
+      "Consecuencias siempre en fichas; persistencia solo local.",
+      "Accesibilidad: SafeArea, atrás predictivo, Semantics, escala de texto."
+    ],
+    "outputs": [
+      "Código del juego",
+      "Tests del motor",
+      "flutter analyze sin avisos y flutter test en verde"
+    ],
+    "permissions": {
+      "writeScope": "lib/games, lib/core, test/",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "Compilar con --no-tree-shake-icons en esta máquina.",
+        "Los textos los pide a contenido-fiesta o deja TODO-CONTENIDO."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta tareas especificadas",
+      "stopConditions": []
+    },
+    "context": {
+      "reads": [
+        "docs/PLAN_PUBLICACION.md",
+        "lib/games/game_module.dart"
+      ],
+      "memory": "Sin memoria propia."
+    },
+    "source": "Paddock/.claude/agents/juego-flutter.md",
+    "currentTasks": []
+  },
+  {
+    "id": "guardian-ui",
+    "name": "guardian-ui",
+    "role": "Guardián de la UI de Parrotrip",
+    "summary": "Cambios visuales con tokens, claro/oscuro y 375 px.",
+    "description": "Hace y revisa cambios visuales del frontend (Next.js + Tailwind) garantizando tokens de theme.css, modo claro/oscuro, 375 px, touch targets y copy de metabuscador.",
+    "kind": "specialist",
+    "areaId": "parrotrip",
+    "teamIds": [
+      "parrotrip"
+    ],
+    "reportsTo": "jefe",
+    "model": "sonnet",
+    "effort": "medium",
+    "accent": "yellow",
+    "tools": {
+      "inherits": true,
+      "allowed": [],
+      "denied": [
+        "Agent"
+      ]
+    },
+    "responsibilities": [
+      "Solo tokens semánticos; nunca colores fijos.",
+      "Touch targets ≥44 px e inputs ≥16 px.",
+      "CTA ‘Ver en el proveedor’; nunca ‘Reservar’ ni ‘Comprar’.",
+      "No tocar lógica, analítica ni gating de proveedores."
+    ],
+    "outputs": [
+      "Componentes tocados",
+      "Comprobación claro/oscuro/375 px",
+      "Build y Playwright"
+    ],
+    "permissions": {
+      "writeScope": "frontend/ (estilos, componentes, textos)",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "Comandos siempre en WSL."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta tareas especificadas",
+      "stopConditions": [
+        "Un asunto por tarea"
+      ]
+    },
+    "context": {
+      "reads": [
+        "CLAUDE.md (Design system rules, UX constraints)",
+        "theme.css"
+      ],
+      "memory": "Sin memoria propia."
+    },
+    "source": "parrotrip/.claude/agents/guardian-ui.md",
+    "currentTasks": []
+  },
+  {
+    "id": "proveedores",
+    "name": "proveedores",
+    "role": "Backend de proveedores de vuelos",
+    "summary": "Adaptadores, caché Redis y búsqueda (Travelpayouts, Duffel).",
+    "description": "Responsable del backend de proveedores de Parrotrip (Node.js + TypeScript, Redis/Upstash, Railway). Producción usa Travelpayouts; Duffel solo sandbox.",
+    "kind": "specialist",
+    "areaId": "parrotrip",
+    "teamIds": [
+      "parrotrip"
+    ],
+    "reportsTo": "jefe",
+    "model": "sonnet",
+    "effort": "high",
+    "accent": "red",
+    "tools": {
+      "inherits": true,
+      "allowed": [],
+      "denied": [
+        "Agent"
+      ]
+    },
+    "responsibilities": [
+      "Adaptadores, parsing de tarifas, TTL y errores de proveedor.",
+      "Nunca alterar datos de vuelo ni afirmar que un precio está verificado.",
+      "Recomendar @revisor si toca precios, redirect o analítica."
+    ],
+    "outputs": [
+      "Archivos tocados",
+      "Tests (npm test en verde)",
+      "Riesgos detectados"
+    ],
+    "permissions": {
+      "writeScope": "backend/",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "No toca el gating de Tequila, el redirect firmado ni el esquema de analítica.",
+        "No hardcodea TTLs.",
+        "Comandos siempre en WSL."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta tareas especificadas",
+      "stopConditions": [
+        "Cambios en precios, redirect o analítica → recomienda revisor"
+      ]
+    },
+    "context": {
+      "reads": [
+        "CLAUDE.md completo (Hard constraints, Provider safety)",
+        "backend/src/services/inventoryProvider.ts"
+      ],
+      "memory": "Sin memoria propia."
+    },
+    "source": "parrotrip/.claude/agents/proveedores.md",
+    "currentTasks": []
+  },
+  {
+    "id": "dashboard-dev",
+    "name": "dashboard-dev",
+    "role": "Desarrollador del dashboard personal",
+    "summary": "Finanzas, piso, macro, Todoist y rutas cron.",
+    "description": "Desarrolla el dashboard personal de Javier (Next.js en Vercel + Neon). Todo lo que no sea la pantalla de objetivos.",
+    "kind": "specialist",
+    "areaId": "personal-dashboard",
+    "teamIds": [
+      "personal-dashboard"
+    ],
+    "reportsTo": "jefe",
+    "model": "sonnet",
+    "effort": "medium",
+    "accent": "blue",
+    "tools": {
+      "inherits": true,
+      "allowed": [],
+      "denied": [
+        "Agent"
+      ]
+    },
+    "responsibilities": [
+      "Consultar la documentación local de Next antes de escribir código.",
+      "Datos a Neon y secretos a variables de entorno.",
+      "Plataformas financieras en solo lectura: informar, nunca recomendar.",
+      "Rutas app/api/cron/* protegidas con CRON_SECRET."
+    ],
+    "outputs": [
+      "Archivos tocados",
+      "Cambios de esquema",
+      "Resultado de npm run build"
+    ],
+    "permissions": {
+      "writeScope": "Código del dashboard; esquema en db/schema.sql",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "Sin saldos, posiciones, claves ni cadenas de conexión en git.",
+        "Avisos accionables → Todoist; correos solo borradores."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta tareas especificadas",
+      "stopConditions": []
+    },
+    "context": {
+      "reads": [
+        "CLAUDE.md",
+        "AGENTS.md",
+        "docs/ARQUITECTURA.md",
+        "docs/DATOS.md"
+      ],
+      "memory": "Sin memoria propia."
+    },
+    "source": "personalDashboard/.claude/agents/dashboard-dev.md",
+    "currentTasks": []
+  },
+  {
+    "id": "modulos-objetivo",
+    "name": "modulos-objetivo",
+    "role": "Desarrollador de la pantalla de objetivos",
+    "summary": "/objetivos y su sistema de módulos configurable.",
+    "description": "Implementa /objetivos y /objetivos/[slug] con módulos (header, milestones, tasks, stall, log, metric, checklist, mail, calendar, computed) según docs/OBJETIVOS.md.",
+    "kind": "specialist",
+    "areaId": "personal-dashboard",
+    "teamIds": [
+      "personal-dashboard"
+    ],
+    "reportsTo": "jefe",
+    "model": "sonnet",
+    "effort": "medium",
+    "accent": "green",
+    "tools": {
+      "inherits": true,
+      "allowed": [],
+      "denied": [
+        "Agent"
+      ]
+    },
+    "responsibilities": [
+      "Lo específico de cada objetivo se resuelve con configuración (objectives.modules en Neon).",
+      "Título y fecha límite vienen de Todoist (@objetivo).",
+      "Una sola tabla objective_log y objective_metrics para series genéricas.",
+      "Marcar la fase hecha en docs/OBJETIVOS.md."
+    ],
+    "outputs": [
+      "Módulos listos",
+      "npm run build"
+    ],
+    "permissions": {
+      "writeScope": "Sección de objetivos del dashboard",
+      "canCommit": "no-definido",
+      "canPush": false,
+      "notes": [
+        "Los datos iniciales se cargan por SQL a Neon y no se versionan."
+      ]
+    },
+    "autonomy": {
+      "level": 2,
+      "label": "Ejecuta tareas especificadas",
+      "stopConditions": [
+        "Ejecuta solo la fase que le piden"
+      ]
+    },
+    "context": {
+      "reads": [
+        "docs/OBJETIVOS.md",
+        "AGENTS.md",
+        "docs de Next local"
+      ],
+      "memory": "Sin memoria propia."
+    },
+    "source": "personalDashboard/.claude/agents/modulos-objetivo.md",
+    "currentTasks": []
+  }
+]

@@ -1,0 +1,10 @@
+[
+  { "id": "r1", "from": "arquitecto", "to": "implementador", "kind": "handoff", "label": "plan por fases en docs/PLAN_*" },
+  { "id": "r2", "from": "implementador", "to": "arquitecto", "kind": "escalation", "label": "2 fallos iguales → escala" },
+  { "id": "r3", "from": "revisor", "to": "jefe", "kind": "review", "label": "veredicto LISTO / NO LISTO" },
+  { "id": "r4", "from": "validador-idea", "to": "investigador-mercado", "kind": "request", "label": "pide ficha de mercado" },
+  { "id": "r5", "from": "juego-flutter", "to": "contenido-fiesta", "kind": "request", "label": "pide textos (TODO-CONTENIDO)" },
+  { "id": "r6", "from": "proveedores", "to": "revisor", "kind": "review", "label": "recomienda revisión (precios, redirect, analítica)" },
+  { "id": "r7", "from": "release-movil", "to": "javier", "kind": "approval", "label": "OK antes de subir a tiendas" },
+  { "id": "r8", "from": "jefe", "to": "javier", "kind": "approval", "label": "puntos de parada" }
+]
